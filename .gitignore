@@ -1,0 +1,22 @@
+# Environments and secrets
+venv/
+.venv/
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Data (link to it instead of committing it)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
