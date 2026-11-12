@@ -39,19 +39,48 @@ def load_assets():
     return model, prep, explainer
 
 
+# NEW: a slider and a number box that stay in sync (drag for speed, type for precision)
+def synced_input(label, min_v, max_v, default, step, key):
+    sld, num = f"{key}_sld", f"{key}_num"
+    if sld not in st.session_state:
+        st.session_state[sld] = default
+        st.session_state[num] = default
+
+    def snap(v):
+        return float(min(max(round(round(v / step) * step, 4), min_v), max_v))
+
+    def on_slider():
+        st.session_state[num] = st.session_state[sld]
+
+    def on_number():
+        v = snap(st.session_state[num])
+        st.session_state[sld] = v
+        st.session_state[num] = v
+
+    st.slider(label, min_v, max_v, step=step, key=sld, on_change=on_slider)
+    st.number_input("Exact value", min_v, max_v, step=step, format="%.2f",
+                    key=num, on_change=on_number)
+    return st.session_state[sld]
+
+
 model, prep, explainer = load_assets()
 
 st.title("Loan Default Predictor")
 st.caption("Estimates the probability that a borrower becomes 90+ days late within two years. "
            "Educational project, not for real lending decisions.")
-
+st.caption("Input ranges are limited to where the training data is dense; "
+           "predictions outside them would be unreliable.")
 col1, col2 = st.columns(2)
 with col1:
-    age = st.number_input("Age", 18, 100, 45)
-    income = st.number_input("Monthly income", 0, 50_000, 5_000, step=500)
-    utilization = st.slider("Credit card utilization (balance / limit)", 0.0, 2.0, 0.30, 0.01)
-    debt_ratio = st.slider("Debt ratio (monthly debt / income)", 0.0, 10.0, 0.35, 0.05)
+    age = st.number_input("Age", 18, 90, 45)
+    income = st.number_input("Monthly income", 500, 50_000, 5_000, step=500)
+    # CHANGED: the two sliders now come with a number box for exact values
+    utilization = synced_input("Credit card utilization (balance / limit)",
+                               0.0, 1.5, 0.30, 0.01, "util")
+    debt_ratio = synced_input("Debt ratio (monthly debt / income)",
+                              0.0, 5.0, 0.35, 0.05, "debt")
     dependents = st.number_input("Dependents", 0, 10, 0)
+    
 with col2:
     open_lines = st.number_input("Open credit lines and loans", 0, 40, 8)
     real_estate = st.number_input("Real estate loans", 0, 10, 1)
