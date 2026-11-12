@@ -98,6 +98,9 @@ loan-default-predictor/
 │   ├── 02_modeling.ipynb     # Models, SMOTE, tuning, test evaluation, calibration
 │   └── 03_explainability.ipynb  # SHAP
 ├── src/preprocessing.py      # Cleaning, split, preprocessing pipeline
+├── tests/                    # pytest suite (preprocessing rules, saved model)
+│   ├── test_preprocessing.py
+│   └── test_model.py
 ├── models/                   # Trained pipeline (joblib)
 ├── reports/                  # Plots and screenshots
 ├── data/raw/                 # Dataset goes here (not included)
@@ -117,6 +120,19 @@ streamlit run app/streamlit_app.py
 ```
 
 The trained model is included, so the app runs without the dataset.
+
+## Run the tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest tests/ -v
+```
+
+The suite checks the cleaning rules (placeholder codes, impossible ages,
+debt-ratio handling, value caps), that the split stays stratified, that the
+preprocessor output has no missing values, and that the saved model is the
+calibrated unweighted model with sane predictions (low risk for a safe
+borrower, high risk for a risky one, higher utilization raising risk).
 
 **To reproduce the notebooks:** download `cs-training.csv` from the [Kaggle competition](https://www.kaggle.com/c/GiveMeSomeCredit) (accept the rules first), place it in `data/raw/`, run `pip install -r requirements-dev.txt`, and run the notebooks in order.
 
