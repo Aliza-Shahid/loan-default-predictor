@@ -93,7 +93,20 @@ if st.button("Predict risk", type="primary"):
     )
 
     st.subheader("What drove this prediction")
-    sv = explainer(prep.transform(row))
-    shap.plots.waterfall(sv[0], max_display=8, show=False)
+    Xt = prep.transform(row)
+    sv = explainer(Xt)
+
+    # Show the borrower's real values in the chart labels instead of scaled ones
+    display = np.zeros(Xt.shape[1])
+    display[: row.shape[1]] = row.iloc[0].to_numpy()
+    expl = shap.Explanation(
+        values=sv.values[0],
+        base_values=float(np.ravel(sv.base_values)[0]),
+        data=display,
+        feature_names=sv.feature_names,
+    )
+    shap.plots.waterfall(expl, max_display=8, show=False)
+    st.caption("The chart starts from about 2.7%, the prediction for a borrower with "
+               "all-average features, and each bar shows how a feature moves the estimate.")
     st.pyplot(plt.gcf())
     plt.close()
