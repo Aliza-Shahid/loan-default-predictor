@@ -20,3 +20,4 @@ data/processed/*
 .DS_Store
 Thumbs.db
 .vscode/
+models/*_weighted.joblib
