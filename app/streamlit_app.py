@@ -4,9 +4,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
 
-import warnings
-warnings.filterwarnings("ignore", category=FutureWarning)
-
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,7 +33,7 @@ def load_assets():
 
     # Scaled features are centred at 0, so a zero row is the "average borrower" reference
     explainer = shap.Explainer(predict_proba, np.zeros((1, len(names))), feature_names=names)
-    return model, prep, explainer
+    return model, prep, explainer, names
 
 
 # NEW: a slider and a number box that stay in sync (drag for speed, type for precision)
@@ -63,7 +60,7 @@ def synced_input(label, min_v, max_v, default, step, key):
     return st.session_state[sld]
 
 
-model, prep, explainer = load_assets()
+model, prep, explainer, feature_names = load_assets()
 
 st.title("Loan Default Predictor")
 st.caption("Estimates the probability that a borrower becomes 90+ days late within two years. "
@@ -125,9 +122,19 @@ if st.button("Predict risk", type="primary"):
     Xt = prep.transform(row)
     sv = explainer(Xt)
 
-    # Show the borrower's real values in the chart labels instead of scaled ones
+    # Show the borrower's real values in the chart labels instead of scaled ones.
+    # Map by feature name, not by position: the last columns are the
+    # missing-value indicators, which are 1 only when the matching input is
+    # missing. (In the app every input is always filled in, so they are 0
+    # here, but deriving them from the row keeps this correct if the code is
+    # ever reused with incomplete rows.)
+    raw = row.iloc[0]
     display = np.zeros(Xt.shape[1])
-    display[: row.shape[1]] = row.iloc[0].to_numpy()
+    for i, name in enumerate(feature_names):
+        if name.startswith("missing: "):
+            display[i] = 1.0 if pd.isna(raw[name.replace("missing: ", "")]) else 0.0
+        elif name in raw.index:
+            display[i] = raw[name]
     expl = shap.Explanation(
         values=sv.values[0],
         base_values=float(np.ravel(sv.base_values)[0]),
