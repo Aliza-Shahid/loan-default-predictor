@@ -2,6 +2,8 @@
 
 Estimates the probability that a borrower becomes 90+ days late on a loan within two years, using a leakage-free scikit-learn pipeline, calibrated probabilities, and SHAP explanations for every prediction.
 
+**Live demo:** [loan-default-predictor-predictor.streamlit.app](https://loan-default-predictor-predictor.streamlit.app/)
+
 | Safe borrower | Risky borrower |
 |---|---|
 | ![Low risk](reports/app_low_risk.png) | ![High risk](reports/app_high_risk.png) |
